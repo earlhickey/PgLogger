@@ -47,6 +47,8 @@ class LogEvents implements ListenerAggregateInterface
             $this->handlers[] = $events->attach($function . '.cache', array($this, 'log'), -1000);
             $this->handlers[] = $events->attach($function . '.post',array($this, 'log'), -1000);
         }
+
+        $this->handlers[] = $events->attach('*', array($this, 'log'), -1000);
     }
 
 
@@ -142,7 +144,7 @@ class LogEvents implements ListenerAggregateInterface
         $log = "Exception:\n" . implode("\n", $messages);
         $log .= "\nTrace:\n" . $trace;
 
-        $this->log->err($log);
+        $this->log->notice($log);
     }
 
     /**
@@ -154,7 +156,7 @@ class LogEvents implements ListenerAggregateInterface
      */
     public function logObject($e)
     {
-        $this->log->err(sprintf('object!'));
+        $this->log->notice(sprintf('object!'));
     }
 
     /**
@@ -166,7 +168,7 @@ class LogEvents implements ListenerAggregateInterface
      */
     public function logArray($e)
     {
-        $this->log->info(sprintf('array!'));
+        $this->log->notice(sprintf('array!'));
     }
 
     /**
@@ -178,6 +180,6 @@ class LogEvents implements ListenerAggregateInterface
      */
     public function logScalar($e)
     {
-        $this->log->info(sprintf($e));
+        $this->log->notice(sprintf($e));
     }
 }

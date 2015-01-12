@@ -1,0 +1,39 @@
+<?php
+/**
+ * PgLogger Configuration
+ */
+
+use Zend\Log\Logger;
+use Zend\Log\Writer\Db;
+use Zend\Mail\Transport\Sendmail;
+
+return array(
+    'logger' => array(
+        'appName' => 'Your App Name',
+        // DB
+        /*'database' => array(
+            'logger_table' => 'application_log',
+            'priority_filter' => Logger::DEBUG,
+        ),*/
+        // Email
+        /*'email' => array(
+            'recipients' => array(
+                'Your Name' => 'yourname@yourdomain.net'
+            ),
+            'from' => array(
+                'PgLogger' => 'no-reply@yourdomain.net'
+            ),
+            'transport' => new Sendmail('-freturn_to_no-reply@yourdomain.net'),
+            'priority_filter' => Logger::ERR,
+        ),*/
+        // Syslog
+        'syslog' => array(
+            'priority_filter' => Logger::DEBUG,
+        ),
+        // Log file
+        /*'file' => array(
+            'log_file' => '/tmp/application.log',
+            'priority_filter' => Logger::DEBUG,
+        )*/
+    )
+);

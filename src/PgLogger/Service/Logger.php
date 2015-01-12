@@ -3,7 +3,7 @@
 namespace PgLogger\Service;
 
 use Zend\Log\Logger as ZendLogger;
-use Zend\Log\Filter\Priority;
+use Zend\Log\Filter\Priority as PriorityFilter;
 use Zend\Log\Writer;
 
 use Zend\Mail\Message;
@@ -20,6 +20,7 @@ use Zend\Mail\Transport\Sendmail as MailTransport;
  */
 class Logger extends ZendLogger
 {
+    protected $serviceManager;
     protected $mailTransport;
     protected $mailRecipients;
 
@@ -40,36 +41,130 @@ class Logger extends ZendLogger
      *   NOTICE  = 5;  // Notice: normal but significant condition
      *   INFO    = 6;  // Informational: informational messages
      *   DEBUG   = 7;  // Debug: debug messages
-     *
      */
     public function getLogger($debug = false, $logPhpErrors = true)
     {
-        if(!$this->mailTransport instanceof MailTransport) {
-            throw new InvalidArgumentException('Mail transport is not an instance of Zend\Mail\Transport\Sendmail');
+        if(!isset($this->config)) {
+            throw new \RuntimeException('Logger not properly configured');
         }
 
-        //  set default recipient
-        if(!(count($this->mailRecipients))) {
-            $this->setMailRecipients(array('Patrick Groot' => 'pgroot@gmail.com'));
+        if(!isset($this->config['appName'])) {
+            throw new \RuntimeException('You must specify an app name');
         }
 
         //  initiate the logger
         $logger = new parent();
 
-        //  initiate the mail object
-        $mail = new Message();
-        $mail->addFrom('no-reply@skyradio.nl', 'SRG Logger');
-        foreach($this->mailRecipients as $recipient => $email) {
-            $mail->addTo($email, $recipient);
+        // setup db logging
+        if(isset($this->config['database']) && !is_null($this->config['database'])) {
+            if((empty($this->config['database']['logger_table']))) {
+                throw new \RuntimeException("You must specify a 'logger_table' config param");
+            }
+
+            $dbAdapter = $serviceManager->get($this->config['database']['db_adapter']);
+
+            if(!$dbAdapter instanceof \Zend\Db\Adapter\Adapter) {
+                throw new \RuntimeException("Failed to load database adapter for logger");
+            }
+
+            $tableMapping = array(
+                    'timestamp' => 'event_date',
+                    'priorityName' => 'priority',
+                    'message' => 'event',
+                    'extra' => array(
+                        'source' => 'source',
+                        'uri' => 'uri',
+                        'ip'  => 'ip',
+                        'session_id' => 'session_id'
+                    )
+            );
+
+            $logWriter = new DbWriter($dbAdapter, $this->config['logger_table'], $tableMapping);
+
+            $logWriter->addFilter($logFilter);
+            $logger->addWriter($logWriter);
         }
 
-        //  create the writers
-        $writerSyslog = new Writer\Syslog(array('application' => $this->name));
-        $writerMail = new Writer\Mail($mail, $this->mailTransport);
+        // setup email logging
+        if(isset($this->config['email']) && !is_null($this->config['email'])) {
 
-        //  add the filters and writers to the logger
-        $logger->addWriter($writerMail->addFilter(new Priority(Logger::EMERG)));
-        $logger->addWriter($writerSyslog->addFilter(new Priority(Logger::NOTICE)));
+            //  initiate the mail object
+            $mail = new Message();
+
+            // set email subject
+            $mail->setSubject($this->config['appName']);
+
+            //  set email from
+            if(!(count($this->config['email']['from']))) {
+                throw new \RuntimeException("Logger email from not properly configured");
+            }
+
+            $mail->addFrom(array_values($this->config['email']['from'])[0], key($this->config['email']['from']));
+
+            //  set email recipient(s)
+            if(!(count($this->config['email']['recipients']))) {
+                throw new \RuntimeException("Logger email recipients not properly configured");
+            }
+
+            foreach($this->config['email']['recipients'] as $recipient => $email) {
+                $mail->addTo($email, $recipient);
+            }
+
+            if(!$this->config['email']['transport'] instanceof MailTransport) {
+                throw new \RuntimeException('Mail transport is not an instance of Zend\Mail\Transport\Sendmail');
+            }
+
+            // create writer
+            $writerMail = new Writer\Mail($mail, $this->config['email']['transport']);
+
+            if(!isset($this->config['email']['priority_filter'])) {
+                throw new \RuntimeException("You must specify a email 'priority_filter' config param");
+            }
+
+            // create filter
+            $filterMail = new PriorityFilter($this->config['email']['priority_filter']);
+
+            // add filter and writer to the logger
+            $logger->addWriter($writerMail->addFilter($filterMail));
+
+        }
+
+        // setup syslog logging
+        if(isset($this->config['syslog']) && !is_null($this->config['syslog'])) {
+            // create writer
+            $writerSyslog = new Writer\Syslog(array('application' => $this->config['appName']));
+
+            if(!isset($this->config['syslog']['priority_filter'])) {
+                throw new \RuntimeException("You must specify a syslog 'priority_filter' config param");
+            }
+
+            // create filter
+            $filterSyslog = new PriorityFilter($this->config['syslog']['priority_filter']);
+
+            // add filter and writer to the logger
+            $logger->addWriter($writerSyslog->addFilter($filterSyslog));
+        }
+
+        // setup file logging
+        if(isset($this->config['file']) && !is_null($this->config['file'])) {
+            if(!isset($this->config['file']['log_file'])) {
+                throw new \RuntimeException("You must specify a file 'log_file' config param");
+            }
+
+            // create writer
+            $writerStream = new Writer\Stream($this->config['file']['log_file']);
+
+            if(!isset($this->config['file']['priority_filter'])) {
+                throw new \RuntimeException("You must specify a file 'priority_filter' config param");
+            }
+
+            // create filter
+            $filterStream = new PriorityFilter($this->config['file']['priority_filter']);
+
+            // add filter and writer to the logger
+            $logger->addWriter($writerStream->addFilter($filterStream));
+        }
+
 
         //  log php environment errors
         if($logPhpErrors === true) {
@@ -82,42 +177,16 @@ class Logger extends ZendLogger
 
 
     /**
-    *
-    * Get the mail transport through DI
-    *
-    * @param Zend\Mail\Transport\Sendmail $mailTransport
-    *
-    */
-    public function setMailTransport(MailTransport $mailTransport)
-    {
-        $this->mailTransport = $mailTransport;
-        return $this;
-    }
-
-
-    /**
      *
-     * Get the mail recipients through DI
+     * Get the config through DI
      *
-     * @param   array   $mailRecipients
+     * @param   string   $config
      *
      */
-    public function setMailRecipients($mailRecipients = array())
+    public function setConfig($config)
     {
-        $this->mailRecipients = $mailRecipients;
+        $this->config = $config;
         return $this;
     }
 
-    /**
-     *
-     * Get the name used in log messages through DI
-     *
-     * @param   string   $name
-     *
-     */
-    public function setName($name = 'NONAMESET')
-    {
-        $this->name = '[' . $name . ']';
-        return $this;
-    }
 }
