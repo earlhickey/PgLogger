@@ -51,4 +51,5 @@ Installation
 
 ### Usage
 
-1. ...
+1. $this->getServiceLocator()->get('PgLogger\Service\Logger')->crit('test');
+2. $this->getEventManager()->trigger('log', $this, array('message' => array('file' => $filename, "Testing Logging", 1, "meh"), 'priority' => Logger::CRIT));
