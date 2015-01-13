@@ -42,7 +42,7 @@ class Logger extends ZendLogger
      *   INFO    = 6;  // Informational: informational messages
      *   DEBUG   = 7;  // Debug: debug messages
      */
-    public function getLogger($debug = false, $logPhpErrors = true)
+    public function getLogger()
     {
         if(!isset($this->config)) {
             throw new \RuntimeException('Logger not properly configured');
@@ -165,11 +165,8 @@ class Logger extends ZendLogger
             $logger->addWriter($writerStream->addFilter($filterStream));
         }
 
-
-        //  log php environment errors
-        if($logPhpErrors === true) {
-            Logger::registerErrorHandler($logger);
-        }
+        Logger::registerErrorHandler($logger, true);
+        Logger::registerExceptionHandler($logger);
 
         //  return the logger
         return $logger;

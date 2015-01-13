@@ -47,9 +47,15 @@ Installation
 
 2. Copy `./vendor/earlhickey/PgLogger/config/pg-logger.global.php.dist` to `./config/autoload/pg-logger.global.php` and change the values as desired.
 
-
+3. Create directory `data/log` in the root of your ZF2 project.
 
 ### Usage
 
-1. $this->getServiceLocator()->get('PgLogger\Service\Logger')->crit('test');
-2. $this->getEventManager()->trigger('log', $this, array('message' => array('file' => $filename, "Testing Logging", 1, "meh"), 'priority' => Logger::CRIT));
+1. Call the logger service directly:
+    ```php
+    $this->getServiceLocator()->get('PgLogger\Service\Logger')->crit('test');
+    ```
+2. Use triggers:
+    ```php
+    $this->getEventManager()->trigger('log', $this, array('message' => array('file' => $filename, "Testing Logging", 1, "meh"), 'priority' => Logger::CRIT));
+    ```
