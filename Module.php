@@ -14,11 +14,19 @@ class Module implements Feature\AutoloaderProviderInterface, Feature\ConfigProvi
         $sharedManager = $eventManager->getSharedManager();
         $sm = $e->getApplication()->getServiceManager();
 
-        // attach LogEvents with priority 2 to execute early
+        // attach LogEvents with priority 100 to execute early
         $sharedManager->attach('Zend\Mvc\Controller\AbstractActionController', 'dispatch', function($e) use ($sm) {
            $controller = $e->getTarget();
            $controller->getEventManager()->attachAggregate($sm->get('PgLogger\EventManager\LogEvents'));
-        }, 2);
+        }, 100);
+
+
+        $sharedManager->attach('Zend\Mvc\Application', 'dispatch.error', function($e) use ($sm) {
+            if ($e->getParam('exception')){
+                $sm->get('PgLogger\Service\Logger')->crit($e->getParam('exception'));
+            }
+        }, 100);
+
     }
 
     public function getAutoloaderConfig()
