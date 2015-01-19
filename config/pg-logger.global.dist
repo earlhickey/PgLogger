@@ -18,10 +18,11 @@ return array(
         // Email
         /*'email' => array(
             'recipients' => array(
-                'Your Name' => 'yourname@yourdomain.net'
+                'yourname@yourdomain.net' => 'Your Name',
+                'someone.else@yourdomain.net' => 'Someone Else'
             ),
             'from' => array(
-                'PgLogger' => 'no-reply@yourdomain.net'
+                'no-reply@yourdomain.net' => 'PgLogger'
             ),
             'transport' => new Sendmail('-freturn_to_no-reply@yourdomain.net'),
             'priority_filter' => Logger::ERR,
@@ -32,7 +33,7 @@ return array(
         ),
         // Log file
         /*'file' => array(
-            'log_file' => '/tmp/application.log',
+            'log_file' => './data/log/'.date('Y-m-d').'-error.log',
             'priority_filter' => Logger::DEBUG,
         )*/
     )

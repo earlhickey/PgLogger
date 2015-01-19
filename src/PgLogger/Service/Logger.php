@@ -99,16 +99,14 @@ class Logger extends ZendLogger
                 throw new \RuntimeException("Logger email from not properly configured");
             }
 
-            $mail->addFrom(array_values($this->config['email']['from'])[0], key($this->config['email']['from']));
+            $mail->addFrom($this->config['email']['from']);
 
             //  set email recipient(s)
             if(!(count($this->config['email']['recipients']))) {
                 throw new \RuntimeException("Logger email recipients not properly configured");
             }
 
-            foreach($this->config['email']['recipients'] as $recipient => $email) {
-                $mail->addTo($email, $recipient);
-            }
+            $mail->addTo($this->config['email']['recipients']);
 
             if(!$this->config['email']['transport'] instanceof MailTransport) {
                 throw new \RuntimeException('Mail transport is not an instance of Zend\Mail\Transport\Sendmail');
