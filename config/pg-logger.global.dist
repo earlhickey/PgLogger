@@ -4,7 +4,7 @@
  */
 
 use Zend\Log\Logger;
-use Zend\Log\Writer\Db;
+use Zend\Db\Adapter\Adapter as DbAdapter;
 use Zend\Mail\Transport\Sendmail;
 
 return array(
@@ -12,7 +12,13 @@ return array(
         'appName' => 'Your App Name',
         // DB
         /*'database' => array(
-            'logger_table' => 'application_log',
+            'adapter' => new DbAdapter(array(
+                'driver' => 'Mysqli',
+                'database' => 'your_db',
+                'username' => 'your_db_username',
+                'password' => 'your_db_password'
+             )),
+            'table' => 'application_log',
             'priority_filter' => Logger::DEBUG,
         ),*/
         // Email

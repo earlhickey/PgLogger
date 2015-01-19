@@ -6,6 +6,9 @@ use Zend\Log\Logger as ZendLogger;
 use Zend\Log\Filter\Priority as PriorityFilter;
 use Zend\Log\Writer;
 
+use Zend\Db\Adapter\Adapter as DbAdapter;
+use Zend\Log\Writer\Db as DbWriter;
+
 use Zend\Mail\Message;
 use Zend\Mail\Transport\Sendmail as MailTransport;
 
@@ -57,15 +60,12 @@ class Logger extends ZendLogger
 
         // setup db logging
         if(isset($this->config['database']) && !is_null($this->config['database'])) {
-            if((empty($this->config['database']['logger_table']))) {
-                throw new \RuntimeException("You must specify a 'logger_table' config param");
-            }
-
-            $dbAdapter = $serviceManager->get($this->config['database']['db_adapter']);
-
-            if(!$dbAdapter instanceof \Zend\Db\Adapter\Adapter) {
+            
+            if(!$this->config['database']['adapter'] instanceof DbAdapter) {
                 throw new \RuntimeException("Failed to load database adapter for logger");
             }
+            
+            $dbAdapter = $this->config['database']['adapter'];
 
             $tableMapping = array(
                     'timestamp' => 'event_date',
@@ -79,10 +79,18 @@ class Logger extends ZendLogger
                     )
             );
 
-            $logWriter = new DbWriter($dbAdapter, $this->config['logger_table'], $tableMapping);
-
-            $logWriter->addFilter($logFilter);
-            $logger->addWriter($logWriter);
+            if((empty($this->config['database']['table']))) {
+                throw new \RuntimeException("You must specify a 'table' config param");
+            }
+            
+            // create writer
+            $writerDatabase = new DbWriter($dbAdapter, $this->config['database']['table'], $tableMapping);
+            
+            // create filter
+            $filterDatabase = new PriorityFilter($this->config['database']['priority_filter']);
+            
+            // add filter and writer to the logger
+            $logger->addWriter($writerDatabase->addFilter($filterDatabase));
         }
 
         // setup email logging
