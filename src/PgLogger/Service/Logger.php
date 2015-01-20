@@ -12,6 +12,8 @@ use Zend\Log\Writer\Db as DbWriter;
 use Zend\Mail\Message;
 use Zend\Mail\Transport\Sendmail as MailTransport;
 
+use FirePHPCore\FirePHP;
+
 /**
  *
  * Logger Service Class
@@ -171,6 +173,18 @@ class Logger extends ZendLogger
             $logger->addWriter($writerStream->addFilter($filterStream));
         }
 
+        // setup firephp logging
+        if(isset($this->config['firephp']) && !is_null($this->config['firephp'])) {
+            // create writer
+            $writerFirePhp = (class_exists('FirePHP')) ? new Writer\FirePhp() : new Writer\Stream('php://output');
+            
+            // create filter
+            $filterFirePhp = new PriorityFilter($this->config['firephp']['priority_filter']);
+            
+            // add filter and writer to the logger
+            $logger->addWriter($writerFirePhp->addFilter($filterFirePhp));
+        }
+        
         Logger::registerErrorHandler($logger, true);
         Logger::registerExceptionHandler($logger);
 

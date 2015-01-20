@@ -3,6 +3,10 @@ PgLogger
 
 ZF2 Logging Module
 
+Log to DB, Email, File, Syslog, FirePHP. Fully customizable with config file. 
+
+Call logger directly or with triggers.
+
 Installation
 ------------
 
@@ -55,7 +59,9 @@ Installation
     ```php
     $this->getServiceLocator()->get('PgLogger\Service\Logger')->crit('test');
     ```
-2. Use triggers:
+2. Use triggers: 
     ```php
-    $this->getEventManager()->trigger('log', $this, array('message' => array('file' => $filename, "Testing Logging", 1, "meh"), 'priority' => Logger::CRIT));
+    $this->getEventManager()->trigger('log', $this, array('message' => $message, 'priority' => Logger::CRIT));
     ```
+   * message
+   * priority is optional (default: INFO) 

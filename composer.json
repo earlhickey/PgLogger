@@ -4,7 +4,8 @@
   "version" : "0.1",
   "require" : {
     "php" : ">=5.3.3",
-    "zendframework/zendframework" : "2.3.*"
+    "zendframework/zendframework" : "2.3.*",
+    "firephp/firephp-core" : "~0.4"
   },
   "authors" : [ {
     "name" : "Patrick Groot",
