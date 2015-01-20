@@ -41,6 +41,10 @@ return array(
         /*'file' => array(
             'log_file' => './data/log/'.date('Y-m-d').'-error.log',
             'priority_filter' => Logger::DEBUG,
+        ),*/
+        // Fire PHP
+        /*'firephp' => array(
+            'priority_filter' => Logger::DEBUG,
         )*/
     )
 );
