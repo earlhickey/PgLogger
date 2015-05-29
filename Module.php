@@ -23,7 +23,20 @@ class Module implements Feature\AutoloaderProviderInterface, Feature\ConfigProvi
 
         $sharedManager->attach('Zend\Mvc\Application', 'dispatch.error', function($e) use ($sm) {
             if ($e->getParam('exception')){
-                $sm->get('PgLogger\Service\Logger')->crit($e->getParam('exception'));
+                $exception = $e->getParam('exception');
+                do {
+                    $sm->get('PgLogger\Service\Logger')->crit(
+                        sprintf(
+                           "%s:%d %s (%d) [%s]\n",
+                            $exception->getFile(),
+                            $exception->getLine(),
+                            $exception->getMessage(),
+                            $exception->getCode(),
+                            get_class($exception)
+                        )
+                    );
+                }
+                while($exception = $exception->getPrevious());
             }
         }, 100);
 
