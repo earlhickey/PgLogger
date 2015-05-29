@@ -45,14 +45,10 @@ class LogEvents implements ListenerAggregateInterface
 
             $priority = $e->getParam('priority', Logger::INFO);
             $message = $e->getParam('message', "[No Message Provided]");
-
-            // prepare extra's
-            $targetClass = get_class($e->getTarget());
-            $request = $e->getTarget()->getRequest();
+            // extra's
             $remoteAddress = new RemoteAddress();
             $extras = array(
-                'source' => $targetClass,
-                'uri' => ($request instanceof ConsoleRequest ? 'console' : $request->getUriString()),
+                'source' => get_class($e->getTarget()),
                 'ip' => $remoteAddress->getIpAddress(),
                 'session_id' => session_id()
             );
