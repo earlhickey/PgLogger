@@ -4,7 +4,7 @@
   "version" : "0.2",
   "require" : {
     "php" : ">=5.3.3",
-    "zendframework/zendframework" : "2.3.*",
+    "zendframework/zendframework" : "2.*",
     "firephp/firephp-core" : "~0.4"
   },
   "authors" : [ {
