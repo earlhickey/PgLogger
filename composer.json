@@ -1,7 +1,7 @@
 {
   "name" : "earlhickey/pg-logger",
   "description" : "ZF2 logging module",
-  "version" : "0.1",
+  "version" : "0.2",
   "require" : {
     "php" : ">=5.3.3",
     "zendframework/zendframework" : "2.3.*",
